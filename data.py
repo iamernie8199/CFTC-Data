@@ -9,7 +9,7 @@ from sql import *
 import datetime
 
 
-def Download(y):
+def CITDownload(y):
     if y < 2006 or y > 2020:
         return 0
     print("下載" + str(y) + "年報告中...")
@@ -46,7 +46,7 @@ if __name__ == '__main__':
     end = datetime.datetime.today()
 
     for i in range(start.year, end.year + 1):
-        path = Download(i)
+        path = CITDownload(i)
         if (not (path)):
             print('Error')
             continue

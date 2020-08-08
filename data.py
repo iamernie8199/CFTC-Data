@@ -66,7 +66,7 @@ if __name__ == '__main__':
                 dict[h] = h.lower()
         df = df[header]
         df = df.rename(columns=dict)
-        df = df[df.date > start]
+        df = df[df.date > pd.Timestamp(start)]
         df['date'] = df['date'].apply(lambda x: x.strftime("%Y-%m-%d"))
 
         engine = create_engine('postgres://' + pg_config['user'] + ':' +

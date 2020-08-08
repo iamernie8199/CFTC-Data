@@ -10,7 +10,8 @@ import datetime
 
 
 def CITDownload(y):
-    if y < 2006 or y > 2020:
+    t = datetime.datetime.today()
+    if y < 2006 or y > t.year:
         return 0
     print("下載" + str(y) + "年報告中...")
     url = "https://www.cftc.gov/files/dea/history/dea_cit_xls_" + str(

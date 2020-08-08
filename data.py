@@ -1,17 +1,20 @@
-# %%
 import pandas as pd
 from sqlalchemy import create_engine
 import requests
 from zipfile import ZipFile
 import os
+import psycopg2
+from config import pg_config
+from sql import *
+import datetime
 
 
-# %%
 def Download(y):
     if y < 2016 or y > 2020:
         return 0
-    print("開始下載" + str(y) + "年報告...")
-    url = "https://www.cftc.gov/files/dea/history/dea_cit_xls_" + str(y) + ".zip"
+    print("下載" + str(y) + "年報告中...")
+    url = "https://www.cftc.gov/files/dea/history/dea_cit_xls_" + str(
+        y) + ".zip"
     resp = requests.get(url)
     file_path = os.path.join(os.path.basename(url))
     with open(file_path, 'wb') as file:
@@ -22,11 +25,28 @@ def Download(y):
     return file_path
 
 
-# %%
 if __name__ == '__main__':
-    for i in range(2016, 2021):
+    conn = psycopg2.connect(user=pg_config['user'],
+                            password=pg_config['password'],
+                            host=pg_config['host'],
+                            port=pg_config['port'],
+                            database=pg_config['dbname'])
+    cur = conn.cursor()
+    """
+    # 建表用
+    cur.execute(create_cftc_cit_supplement_table_cmd)
+    conn.commit()
+    """
+    # 取得最新日期
+    cur.execute("SELECT max(date) from cftc_cit_supplement")
+    start = cur.fetchone()[0]
+    if start is None:
+        start = datetime.date(2006, 1, 1)
+    end = datetime.datetime.today()
+
+    for i in range(start.year, end.year + 1):
         path = Download(i)
-        if (not(path)):
+        if (not (path)):
             print('Error')
             continue
         df = pd.read_excel('deacit.xls')
@@ -45,10 +65,18 @@ if __name__ == '__main__':
                 dict[h] = h.lower()
         df = df[header]
         df = df.rename(columns=dict)
+        df = df[df.date > start]
         df['date'] = df['date'].apply(lambda x: x.strftime("%Y-%m-%d"))
 
-        engine = create_engine(
-            'postgres://postgres:postgres@192.168.99.100:5432/postgres')
-        df.to_sql('cftc_cit_supplement', engine, index=False, if_exists='append')
-        print(str(i)+'年 Done')
+        engine = create_engine('postgres://' + pg_config['user'] + ':' +
+                               pg_config['password'] + '@' +
+                               pg_config['host'] + ':' +
+                               str(pg_config['port']) + '/' +
+                               pg_config['dbname'])
+        df.to_sql('cftc_cit_supplement',
+                  engine,
+                  index=False,
+                  if_exists='append')
+        print(str(i) + '年 Done')
         os.remove(path)
+        os.remove('deacit.xls')

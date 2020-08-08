@@ -10,7 +10,7 @@ import datetime
 
 
 def Download(y):
-    if y < 2016 or y > 2020:
+    if y < 2006 or y > 2020:
         return 0
     print("下載" + str(y) + "年報告中...")
     url = "https://www.cftc.gov/files/dea/history/dea_cit_xls_" + str(
@@ -21,8 +21,9 @@ def Download(y):
         file.write(resp.content)
 
     with ZipFile(file_path) as zip_ref:
+        filename = zip_ref.namelist()[0]
         zip_ref.extractall()
-    return file_path
+    return filename
 
 
 if __name__ == '__main__':
@@ -32,11 +33,11 @@ if __name__ == '__main__':
                             port=pg_config['port'],
                             database=pg_config['dbname'])
     cur = conn.cursor()
-    """
+
     # 建表用
     cur.execute(create_cftc_cit_supplement_table_cmd)
     conn.commit()
-    """
+
     # 取得最新日期
     cur.execute("SELECT max(date) from cftc_cit_supplement")
     start = cur.fetchone()[0]
@@ -49,13 +50,13 @@ if __name__ == '__main__':
         if (not (path)):
             print('Error')
             continue
-        df = pd.read_excel('deacit.xls')
+        df = pd.read_excel(path)
         df = df.drop(columns=['As_of_Date_In_Form_YYMMDD'])
         header = df.columns.tolist()
         header = header[1:2] + header[0:1] + header[2:]
         dict = {}
         for h in header:
-            if h == 'Report_Date_as_MM_DD_YYYY':
+            if h == 'Report_Date_as_MM_DD_YYYY' or h == 'Report_Date_as_YYYY_MM_DD':
                 dict[h] = 'date'
             elif h[-1] == ' ':
                 dict[h] = h[:-1].lower()
@@ -78,5 +79,5 @@ if __name__ == '__main__':
                   index=False,
                   if_exists='append')
         print(str(i) + '年 Done')
+        os.remove("dea_cit_xls_" + str(i) + ".zip")
         os.remove(path)
-        os.remove('deacit.xls')

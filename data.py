@@ -9,6 +9,11 @@ from sql import *
 import datetime
 
 
+def CITCreat(con):
+    cu = con.cursor()
+    cu.execute(create_cftc_cit_supplement_table_cmd)
+    con.commit()
+
 def CITDownload(y):
     t = datetime.datetime.today()
     if y < 2006 or y > t.year:
@@ -27,6 +32,28 @@ def CITDownload(y):
     return filename
 
 
+def CITProcess(p):
+    df = pd.read_excel(p)
+    df = df.drop(columns=['As_of_Date_In_Form_YYMMDD'])
+    header = df.columns.tolist()
+    header = header[1:2] + header[0:1] + header[2:]
+    dict = {}
+    for h in header:
+        if h == 'Report_Date_as_MM_DD_YYYY' or h == 'Report_Date_as_YYYY_MM_DD':
+            dict[h] = 'date'
+        elif h[-1] == ' ':
+            dict[h] = h[:-1].lower()
+        elif h == 'Change_NonComm_Spead_All_NoCIT':
+            dict[h] = 'Change_NonComm_Spread_All_NoCIT'.lower()
+        else:
+            dict[h] = h.lower()
+    df = df[header]
+    df = df.rename(columns=dict)
+    df = df[df.date > pd.Timestamp(start)]
+    df['date'] = df['date'].apply(lambda x: x.strftime("%Y-%m-%d"))
+    return df
+
+
 if __name__ == '__main__':
     conn = psycopg2.connect(user=pg_config['user'],
                             password=pg_config['password'],
@@ -36,8 +63,7 @@ if __name__ == '__main__':
     cur = conn.cursor()
 
     # 建表用
-    cur.execute(create_cftc_cit_supplement_table_cmd)
-    conn.commit()
+    # CITCreat(conn)
 
     # 取得最新日期
     cur.execute("SELECT max(date) from cftc_cit_supplement")
@@ -51,31 +77,13 @@ if __name__ == '__main__':
         if (not (path)):
             print('Error')
             continue
-        df = pd.read_excel(path)
-        df = df.drop(columns=['As_of_Date_In_Form_YYMMDD'])
-        header = df.columns.tolist()
-        header = header[1:2] + header[0:1] + header[2:]
-        dict = {}
-        for h in header:
-            if h == 'Report_Date_as_MM_DD_YYYY' or h == 'Report_Date_as_YYYY_MM_DD':
-                dict[h] = 'date'
-            elif h[-1] == ' ':
-                dict[h] = h[:-1].lower()
-            elif h == 'Change_NonComm_Spead_All_NoCIT':
-                dict[h] = 'Change_NonComm_Spread_All_NoCIT'.lower()
-            else:
-                dict[h] = h.lower()
-        df = df[header]
-        df = df.rename(columns=dict)
-        df = df[df.date > pd.Timestamp(start)]
-        df['date'] = df['date'].apply(lambda x: x.strftime("%Y-%m-%d"))
-
+        cit_df = CITProcess(path)
         engine = create_engine('postgres://' + pg_config['user'] + ':' +
                                pg_config['password'] + '@' +
                                pg_config['host'] + ':' +
                                str(pg_config['port']) + '/' +
                                pg_config['dbname'])
-        df.to_sql('cftc_cit_supplement',
+        cit_df.to_sql('cftc_cit_supplement',
                   engine,
                   index=False,
                   if_exists='append')

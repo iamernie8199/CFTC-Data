@@ -66,6 +66,8 @@ def Download(u):
     with ZipFile(file_path) as zip_ref:
         filename = zip_ref.namelist()[0]
         zip_ref.extractall()
+        if len(zip_ref.namelist()) > 1:
+            os.remove(zip_ref.namelist()[1])
     return filename
 
 
@@ -119,8 +121,8 @@ def main(db, c):
         SQL(cit_df, dbname)
         os.remove(zpath)
         os.remove(path)
-        if db == 'cftc_disaggregated_futures_only' and i == start.year:
-            os.remove('F_DisAgg16_16.xls')
+        """if db == 'cftc_disaggregated_futures_only' and i == start.year:
+            os.remove('F_DisAgg16_16.xls')"""
 
 
 if __name__ == '__main__':

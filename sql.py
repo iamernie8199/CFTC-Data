@@ -1,5 +1,5 @@
 create_cftc_cit_supplement_table_cmd = """
-    CREATE TABLE cftc_cit_supplement (
+    CREATE TABLE CREATE TABLE IF NOT EXISTS cftc_cit_supplement (
     date DATE NOT NULL,
     Market_and_Exchange_Names TEXT NOT NULL,
     CFTC_Contract_Market_Code TEXT NOT NULL,
@@ -56,7 +56,7 @@ create_cftc_cit_supplement_table_cmd = """
     PRIMARY KEY (date, Market_and_Exchange_Names));"""
 
 create_cftc_futures_only_reports_table_cmd = """
-    CREATE TABLE cftc_futures_only_reports (
+    CREATE TABLE CREATE TABLE IF NOT EXISTS cftc_futures_only_reports (
     date DATE NOT NULL,
     Market_and_Exchange_Names TEXT NOT NULL,
     CFTC_Contract_Market_Code TEXT NOT NULL,
@@ -185,7 +185,7 @@ create_cftc_futures_only_reports_table_cmd = """
     PRIMARY KEY (date, Market_and_Exchange_Names, CFTC_Contract_Market_Code));"""
 
 create_cftc_tff_futures_only_table_cmd = """
-    CREATE TABLE cftc_tff_futures_only (
+    CREATE TABLE CREATE TABLE IF NOT EXISTS cftc_tff_futures_only (
     date DATE NOT NULL,
     Market_and_Exchange_Names TEXT NOT NULL,
     CFTC_Contract_Market_Code TEXT NOT NULL,
@@ -272,8 +272,8 @@ create_cftc_tff_futures_only_table_cmd = """
     PRIMARY KEY (date, Market_and_Exchange_Names, CFTC_Contract_Market_Code));"""
 
 create_cftc_disaggregated_futures_only_reports_table_cmd = """
-    CREATE TABLE cftc_disaggregated_futures_only_reports (
-    date DATE NOT NULL, 
+    CREATE TABLE CREATE TABLE IF NOT EXISTS cftc_disaggregated_futures_only_reports (
+    date DATE NOT NULL,
     Market_and_Exchange_Names TEXT NOT NULL,
     CFTC_Contract_Market_Code TEXT NOT NULL,
     CFTC_Market_Code TEXT NOT NULL,

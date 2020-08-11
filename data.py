@@ -73,11 +73,9 @@ def Process(p, s):
     df = pd.read_excel(p)
     df = df.drop(columns=['As_of_Date_In_Form_YYMMDD'])
     header = df.columns.tolist()
-    header = header[1:2] + header[0:1] + header[2:]
     dict = {}
-    date = ['Report_Date_as_MM_DD_YYYY', 'Report_Date_as_YYYY_MM_DD']
     for h in header:
-        if h in date:
+        if re.search(r'Report_Date_as', h):
             dict[h] = 'date'
         elif h[-1] == ' ':
             dict[h] = h[:-1].lower()
@@ -87,7 +85,6 @@ def Process(p, s):
             dict[h] = (re.sub(r'__', '_', h)).lower()
         else:
             dict[h] = h.lower()
-    df = df[header]
     df = df.rename(columns=dict)
     df = df[df.date > pd.Timestamp(s)]
     df['date'] = df['date'].apply(lambda x: x.strftime("%Y-%m-%d"))

@@ -103,7 +103,7 @@ def SQL(df, db):
 
 def main(db, c):
     c.execute(f"SELECT max(date) from {dbname}")
-    start = cur.fetchone()[0]
+    start = c.fetchone()[0]
     if start is None:
         start = Oldest(dbname)
     end = datetime.datetime.today()

@@ -8,6 +8,7 @@ from config import pg_config
 from sql import *
 import datetime
 import re
+from tqdm import trange
 
 
 def Creat(con):
@@ -53,7 +54,6 @@ def DataDownload(y, db):
             url = 'https://www.cftc.gov/files/dea/history/fut_disagg_xls_hist_2006_2016.zip'
         else:
             url = f'https://www.cftc.gov/files/dea/history/fut_disagg_xls_{str(y)}.zip'
-    print(f"下載{str(y)}年報告中...")
     filename = Download(url)
     return filename, os.path.basename(url)
 
@@ -109,7 +109,7 @@ def main(db, c):
         start = Oldest(dbname)
     end = datetime.datetime.today()
     print(f'==={db}===')
-    for i in range(start.year, end.year + 1):
+    for i in trange(start.year, end.year + 1):
         if db == 'cftc_tff_futures_only' and start.year < i <= 2016:
             continue
         if db == 'cftc_disaggregated_futures_only_reports' and start.year < i <= 2015:
@@ -120,7 +120,6 @@ def main(db, c):
             continue
         cit_df = Process(path, start)
         SQL(cit_df, dbname)
-        print(f'{str(i)}年 Done')
         os.remove(zpath)
         os.remove(path)
         if db == 'cftc_disaggregated_futures_only_reports' and i == start.year:

@@ -14,17 +14,12 @@ def Creat(con):
     create_cmds = [
         create_cftc_cit_supplement_table_cmd,
         create_cftc_futures_only_reports_table_cmd,
-        create_cftc_tff_futures_only_table_cmd
+        create_cftc_tff_futures_only_table_cmd,
+        create_cftc_disaggregated_futures_only_reports_table_cmd
     ]
     for cmd in create_cmds:
         cu.execute(cmd)
         con.commit()
-
-
-def TFFCreat(con):
-    cu = con.cursor()
-    cu.execute(create_cftc_tff_futures_only_table_cmd)
-    con.commit()
 
 
 def Oldest(db):
@@ -33,6 +28,8 @@ def Oldest(db):
     elif db == 'cftc_futures_only_reports':
         s = datetime.date(1986, 1, 1)
     elif db == 'cftc_tff_futures_only':
+        s = datetime.date(2006, 1, 1)
+    elif db == 'cftc_disaggregated_futures_only_reports':
         s = datetime.date(2006, 1, 1)
     return s
 
@@ -50,6 +47,11 @@ def DataDownload(y, db):
             url = "https://www.cftc.gov/files/dea/history/fin_fut_xls_2006_2016.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{str(y)}.zip"
+    elif db == 'cftc_disaggregated_futures_only_reports':
+        if y <= 2015:
+            url = 'https://www.cftc.gov/files/dea/history/fut_disagg_xls_hist_2006_2016.zip'
+        else:
+            url = f'https://www.cftc.gov/files/dea/history/fut_disagg_xls_{str(y)}.zip'
     print(f"下載{str(y)}年報告中...")
     filename = Download(url)
     return filename, os.path.basename(url)
@@ -84,6 +86,18 @@ def Process(p, s):
             dict[h] = 'Change_in_NonComm_Spread_All'.lower()
         elif h == 'Traders_NonComm_Spead_Old':
             dict[h] = 'Traders_NonComm_Spread_Old'.lower()
+        elif h == 'Swap__Positions_Short_All':
+            dict[h] = 'Swap_Positions_Short_All'.lower()
+        elif h == 'Swap__Positions_Spread_All':
+            dict[h] = 'Swap_Positions_Spread_All'.lower()
+        elif h == 'Swap__Positions_Short_Old':
+            dict[h] = 'Swap_Positions_Short_Old'.lower()
+        elif h == 'Swap__Positions_Spread_Old':
+            dict[h] = 'Swap_Positions_Spread_Old'.lower()
+        elif h == 'Swap__Positions_Short_Other':
+            dict[h] = 'Swap_Positions_Short_Other'.lower()
+        elif h == 'Swap__Positions_Spread_Other':
+            dict[h] = 'Swap_Positions_Spread_Other'.lower()
         else:
             dict[h] = h.lower()
     df = df[header]
@@ -111,6 +125,8 @@ def main(db, c):
     for i in range(start.year, end.year + 1):
         if db == 'cftc_tff_futures_only' and i <= 2016 and i > start.year:
             continue
+        if db == 'cftc_disaggregated_futures_only_reports' and i <= 2015 and i > start.year:
+            continue
         path, zpath = DataDownload(i, dbname)
         if (not (path)):
             print('Error')
@@ -120,6 +136,8 @@ def main(db, c):
         print(f'{str(i)}年 Done')
         os.remove(zpath)
         os.remove(path)
+        if db == 'cftc_disaggregated_futures_only_reports' and i == start.year:
+            os.remove('F_DisAgg16_16.xls')
 
 
 if __name__ == '__main__':
@@ -132,11 +150,10 @@ if __name__ == '__main__':
 
     # 建表用
     # Creat(conn)
-    TFFCreat(conn)
 
     dbnames = [
         'cftc_cit_supplement', 'cftc_futures_only_reports',
-        'cftc_tff_futures_only'
+        'cftc_tff_futures_only', 'cftc_disaggregated_futures_only_reports'
     ]
     for dbname in dbnames:
         main(dbname, cur)

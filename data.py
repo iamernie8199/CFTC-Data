@@ -7,6 +7,7 @@ import psycopg2
 from config import pg_config
 from sql import *
 import datetime
+import re
 
 
 def Creat(con):
@@ -80,24 +81,10 @@ def Process(p, s):
             dict[h] = 'date'
         elif h[-1] == ' ':
             dict[h] = h[:-1].lower()
-        elif h == 'Change_NonComm_Spead_All_NoCIT':
-            dict[h] = 'Change_NonComm_Spread_All_NoCIT'.lower()
-        elif h == 'Change_in_NonComm_Spead_All':
-            dict[h] = 'Change_in_NonComm_Spread_All'.lower()
-        elif h == 'Traders_NonComm_Spead_Old':
-            dict[h] = 'Traders_NonComm_Spread_Old'.lower()
-        elif h == 'Swap__Positions_Short_All':
-            dict[h] = 'Swap_Positions_Short_All'.lower()
-        elif h == 'Swap__Positions_Spread_All':
-            dict[h] = 'Swap_Positions_Spread_All'.lower()
-        elif h == 'Swap__Positions_Short_Old':
-            dict[h] = 'Swap_Positions_Short_Old'.lower()
-        elif h == 'Swap__Positions_Spread_Old':
-            dict[h] = 'Swap_Positions_Spread_Old'.lower()
-        elif h == 'Swap__Positions_Short_Other':
-            dict[h] = 'Swap_Positions_Short_Other'.lower()
-        elif h == 'Swap__Positions_Spread_Other':
-            dict[h] = 'Swap_Positions_Spread_Other'.lower()
+        elif re.search(r'Spead', h):
+            dict[h] = (re.sub(r'Spead', 'Spread', h)).lower()
+        elif re.search(r'__', h):
+            dict[h] = (re.sub(r'__', '_', h)).lower()
         else:
             dict[h] = h.lower()
     df = df[header]

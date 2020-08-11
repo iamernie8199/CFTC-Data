@@ -9,15 +9,21 @@ from sql import *
 import datetime
 
 
-def CITCreat(con):
+def Creat(con):
     cu = con.cursor()
-    cu.execute(create_cftc_cit_supplement_table_cmd)
-    con.commit()
+    create_cmds = [
+        create_cftc_cit_supplement_table_cmd,
+        create_cftc_futures_only_reports_table_cmd,
+        create_cftc_tff_futures_only_table_cmd
+    ]
+    for cmd in create_cmds:
+        cu.execute(cmd)
+        con.commit()
 
 
-def FORCreat(con):
+def TFFCreat(con):
     cu = con.cursor()
-    cu.execute(create_cftc_futures_only_reports_table_cmd)
+    cu.execute(create_cftc_tff_futures_only_table_cmd)
     con.commit()
 
 
@@ -26,6 +32,8 @@ def Oldest(db):
         s = datetime.date(2006, 1, 1)
     elif db == 'cftc_futures_only_reports':
         s = datetime.date(1986, 1, 1)
+    elif db == 'cftc_tff_futures_only':
+        s = datetime.date(2006, 1, 1)
     return s
 
 
@@ -37,6 +45,11 @@ def DataDownload(y, db):
             url = f"https://www.cftc.gov/files/dea/history/deafut_xls_{str(y)}.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/dea_fut_xls_{str(y)}.zip"
+    elif db == 'cftc_tff_futures_only':
+        if y <= 2016:
+            url = "https://www.cftc.gov/files/dea/history/fin_fut_xls_2006_2016.zip"
+        else:
+            url = f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{str(y)}.zip"
     print(f"下載{str(y)}年報告中...")
     filename = Download(url)
     return filename, os.path.basename(url)
@@ -94,8 +107,10 @@ def main(db, c):
     if start is None:
         start = Oldest(dbname)
     end = datetime.datetime.today()
-
+    print(f'==={db}===')
     for i in range(start.year, end.year + 1):
+        if db == 'cftc_tff_futures_only' and i <= 2016 and i > start.year:
+            continue
         path, zpath = DataDownload(i, dbname)
         if (not (path)):
             print('Error')
@@ -116,11 +131,12 @@ if __name__ == '__main__':
     cur = conn.cursor()
 
     # 建表用
-    # CITCreat(conn)
-    FORCreat(conn)
+    # Creat(conn)
+    TFFCreat(conn)
 
-    # 取得最新日期
-    """dbname = 'cftc_cit_supplement'
-    main(dbname, cur)"""
-    dbname = 'cftc_futures_only_reports'
-    main(dbname, cur)
+    dbnames = [
+        'cftc_cit_supplement', 'cftc_futures_only_reports',
+        'cftc_tff_futures_only'
+    ]
+    for dbname in dbnames:
+        main(dbname, cur)

@@ -110,9 +110,9 @@ def main(db, c):
     end = datetime.datetime.today()
     print(f'==={db}===')
     for i in range(start.year, end.year + 1):
-        if db == 'cftc_tff_futures_only' and i <= 2016 and i > start.year:
+        if db == 'cftc_tff_futures_only' and start.year < i <= 2016:
             continue
-        if db == 'cftc_disaggregated_futures_only_reports' and i <= 2015 and i > start.year:
+        if db == 'cftc_disaggregated_futures_only_reports' and start.year < i <= 2015:
             continue
         path, zpath = DataDownload(i, dbname)
         if (not (path)):

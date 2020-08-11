@@ -15,9 +15,9 @@ def Creat(con):
     cu = con.cursor()
     create_cmds = [
         create_cftc_cit_supplement_table_cmd,
-        create_cftc_futures_only_reports_table_cmd,
+        create_cftc_futures_only_table_cmd,
         create_cftc_tff_futures_only_table_cmd,
-        create_cftc_disaggregated_futures_only_reports_table_cmd
+        create_cftc_disaggregated_futures_only_table_cmd
     ]
     for cmd in create_cmds:
         cu.execute(cmd)
@@ -27,11 +27,11 @@ def Creat(con):
 def Oldest(db):
     if db == 'cftc_cit_supplement':
         s = datetime.date(2006, 1, 1)
-    elif db == 'cftc_futures_only_reports':
+    elif db == 'cftc_futures_only':
         s = datetime.date(1986, 1, 1)
     elif db == 'cftc_tff_futures_only':
         s = datetime.date(2006, 1, 1)
-    elif db == 'cftc_disaggregated_futures_only_reports':
+    elif db == 'cftc_disaggregated_futures_only':
         s = datetime.date(2006, 1, 1)
     return s
 
@@ -39,7 +39,7 @@ def Oldest(db):
 def DataDownload(y, db):
     if db == 'cftc_cit_supplement':
         url = f"https://www.cftc.gov/files/dea/history/dea_cit_xls_{str(y)}.zip"
-    elif db == 'cftc_futures_only_reports':
+    elif db == 'cftc_futures_only':
         if y <= 2003:
             url = f"https://www.cftc.gov/files/dea/history/deafut_xls_{str(y)}.zip"
         else:
@@ -49,7 +49,7 @@ def DataDownload(y, db):
             url = "https://www.cftc.gov/files/dea/history/fin_fut_xls_2006_2016.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{str(y)}.zip"
-    elif db == 'cftc_disaggregated_futures_only_reports':
+    elif db == 'cftc_disaggregated_futures_only':
         if y <= 2015:
             url = 'https://www.cftc.gov/files/dea/history/fut_disagg_xls_hist_2006_2016.zip'
         else:
@@ -112,7 +112,7 @@ def main(db, c):
     for i in trange(start.year, end.year + 1):
         if db == 'cftc_tff_futures_only' and start.year < i <= 2016:
             continue
-        if db == 'cftc_disaggregated_futures_only_reports' and start.year < i <= 2015:
+        if db == 'cftc_disaggregated_futures_only' and start.year < i <= 2015:
             continue
         path, zpath = DataDownload(i, dbname)
         if (not (path)):
@@ -122,7 +122,7 @@ def main(db, c):
         SQL(cit_df, dbname)
         os.remove(zpath)
         os.remove(path)
-        if db == 'cftc_disaggregated_futures_only_reports' and i == start.year:
+        if db == 'cftc_disaggregated_futures_only' and i == start.year:
             os.remove('F_DisAgg16_16.xls')
 
 
@@ -138,8 +138,8 @@ if __name__ == '__main__':
     Creat(conn)
 
     dbnames = [
-        'cftc_cit_supplement', 'cftc_futures_only_reports',
-        'cftc_tff_futures_only', 'cftc_disaggregated_futures_only_reports'
+        'cftc_cit_supplement', 'cftc_futures_only',
+        'cftc_tff_futures_only', 'cftc_disaggregated_futures_only'
     ]
     for dbname in dbnames:
         main(dbname, cur)

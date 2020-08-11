@@ -135,7 +135,7 @@ if __name__ == '__main__':
     cur = conn.cursor()
 
     # 建表用
-    # Creat(conn)
+    Creat(conn)
 
     dbnames = [
         'cftc_cit_supplement', 'cftc_futures_only_reports',

@@ -1,14 +1,16 @@
-import pandas as pd
-from sqlalchemy import create_engine
-import requests
-from zipfile import ZipFile
+import datetime
 import os
+import re
+from zipfile import ZipFile
+
+import pandas as pd
 import psycopg2
+import requests
+from sqlalchemy import create_engine
+from tqdm import trange
+
 from config import pg_config
 from sql import *
-import datetime
-import re
-from tqdm import trange
 
 
 def Creat(con):
@@ -17,7 +19,8 @@ def Creat(con):
         create_cftc_cit_supplement_table_cmd,
         create_cftc_futures_only_table_cmd,
         create_cftc_tff_futures_only_table_cmd,
-        create_cftc_disaggregated_futures_only_table_cmd
+        create_cftc_disagg_futures_table_cmd,
+        create_cftc_disagg_combined_table_cmd
     ]
     for cmd in create_cmds:
         cu.execute(cmd)
@@ -25,35 +28,42 @@ def Creat(con):
 
 
 def Oldest(db):
-    if db == 'cftc_cit_supplement':
+    if db == 'api_cftc_cit_supplement':
         s = datetime.date(2006, 1, 1)
-    elif db == 'cftc_futures_only':
+    elif db == 'api_cftc_futures_only':
         s = datetime.date(1986, 1, 1)
-    elif db == 'cftc_tff_futures_only':
+    elif db == 'api_cftc_tff_futures_only':
         s = datetime.date(2006, 1, 1)
-    elif db == 'cftc_disaggregated_futures_only':
+    elif db == 'api_cftc_disagg_futures':
+        s = datetime.date(2006, 1, 1)
+    elif db == 'api_cftc_disagg_combined':
         s = datetime.date(2006, 1, 1)
     return s
 
 
 def DataDownload(y, db):
-    if db == 'cftc_cit_supplement':
+    if db == 'api_cftc_cit_supplement':
         url = f"https://www.cftc.gov/files/dea/history/dea_cit_xls_{str(y)}.zip"
-    elif db == 'cftc_futures_only':
+    elif db == 'api_cftc_futures_only':
         if y <= 2003:
             url = f"https://www.cftc.gov/files/dea/history/deafut_xls_{str(y)}.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/dea_fut_xls_{str(y)}.zip"
-    elif db == 'cftc_tff_futures_only':
+    elif db == 'api_cftc_tff_futures_only':
         if y <= 2016:
             url = "https://www.cftc.gov/files/dea/history/fin_fut_xls_2006_2016.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{str(y)}.zip"
-    elif db == 'cftc_disaggregated_futures_only':
+    elif db == 'api_cftc_disagg_futures':
         if y <= 2015:
             url = 'https://www.cftc.gov/files/dea/history/fut_disagg_xls_hist_2006_2016.zip'
         else:
             url = f'https://www.cftc.gov/files/dea/history/fut_disagg_xls_{str(y)}.zip'
+    elif db == 'api_cftc_disagg_combined':
+        if y <= 2015:
+            url = 'https://www.cftc.gov/files/dea/history/com_disagg_xls_hist_2006_2016.zip'
+        else:
+            url = f'https://www.cftc.gov/files/dea/history/com_disagg_xls_{str(y)}.zip'
     filename = Download(url)
     return filename, os.path.basename(url)
 
@@ -102,6 +112,7 @@ def SQL(df, db):
 
 
 def main(db, c):
+    gg = ['api_cftc_disagg_futures', 'api_cftc_disagg_combined']
     c.execute(f"SELECT max(date) from {dbname}")
     start = c.fetchone()[0]
     if start is None:
@@ -109,9 +120,9 @@ def main(db, c):
     end = datetime.datetime.today()
     print(f'==={db}===')
     for i in trange(start.year, end.year + 1):
-        if db == 'cftc_tff_futures_only' and start.year < i <= 2016:
+        if db == 'api_cftc_tff_futures_only' and start.year < i <= 2016:
             continue
-        if db == 'cftc_disaggregated_futures_only' and start.year < i <= 2015:
+        if db in gg and start.year < i <= 2015:
             continue
         path, zpath = DataDownload(i, dbname)
         if (not (path)):
@@ -121,7 +132,7 @@ def main(db, c):
         SQL(cit_df, dbname)
         os.remove(zpath)
         os.remove(path)
-        """if db == 'cftc_disaggregated_futures_only' and i == start.year:
+        """if db == 'api_cftc_disagg_futures' and i == start.year:
             os.remove('F_DisAgg16_16.xls')"""
 
 
@@ -137,8 +148,9 @@ if __name__ == '__main__':
     Creat(conn)
 
     dbnames = [
-        'cftc_cit_supplement', 'cftc_futures_only',
-        'cftc_tff_futures_only', 'cftc_disaggregated_futures_only'
-    ]
+            'cftc_cit_supplement', 'cftc_futures_only',
+            'cftc_tff_futures_only',
+            'api_cftc_disagg_futures', 'api_cftc_disagg_combined'
+        ]
     for dbname in dbnames:
         main(dbname, cur)

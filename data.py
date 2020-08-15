@@ -17,8 +17,10 @@ def Creat(con):
     cu = con.cursor()
     create_cmds = [
         create_cftc_cit_supplement_table_cmd,
-        create_cftc_futures_only_table_cmd,
-        create_cftc_tff_futures_only_table_cmd,
+        create_cftc_futures_table_cmd,
+        create_cftc_combined_table_cmd,
+        create_cftc_tff_futures_table_cmd,
+        create_cftc_tff_combined_table_cmd,
         create_cftc_disagg_futures_table_cmd,
         create_cftc_disagg_combined_table_cmd
     ]
@@ -28,15 +30,11 @@ def Creat(con):
 
 
 def Oldest(db):
-    if db == 'api_cftc_cit_supplement':
-        s = datetime.date(2006, 1, 1)
-    elif db == 'api_cftc_futures_only':
+    if db == 'api_cftc_futures':
         s = datetime.date(1986, 1, 1)
-    elif db == 'api_cftc_tff_futures_only':
-        s = datetime.date(2006, 1, 1)
-    elif db == 'api_cftc_disagg_futures':
-        s = datetime.date(2006, 1, 1)
-    elif db == 'api_cftc_disagg_combined':
+    elif db == 'api_cftc_combined':
+        s = datetime.date(1995, 1, 1)
+    else:
         s = datetime.date(2006, 1, 1)
     return s
 
@@ -44,16 +42,26 @@ def Oldest(db):
 def DataDownload(y, db):
     if db == 'api_cftc_cit_supplement':
         url = f"https://www.cftc.gov/files/dea/history/dea_cit_xls_{str(y)}.zip"
-    elif db == 'api_cftc_futures_only':
+    elif db == 'api_cftc_futures':
         if y <= 2003:
             url = f"https://www.cftc.gov/files/dea/history/deafut_xls_{str(y)}.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/dea_fut_xls_{str(y)}.zip"
-    elif db == 'api_cftc_tff_futures_only':
+    elif db == 'api_cftc_combined':
+        if y <= 2003:
+            url = f'https://www.cftc.gov/files/dea/history/deacom_xls_{str(y)}.zip'
+        else:
+            url = f'https://www.cftc.gov/files/dea/history/dea_com_xls_{str(y)}.zip'
+    elif db == 'api_cftc_tff_futures':
         if y <= 2016:
             url = "https://www.cftc.gov/files/dea/history/fin_fut_xls_2006_2016.zip"
         else:
             url = f"https://www.cftc.gov/files/dea/history/fut_fin_xls_{str(y)}.zip"
+    elif db == 'api_cftc_tff_combined':
+        if y <= 2016:
+            url = 'https://www.cftc.gov/files/dea/history/fin_com_xls_2006_2016.zip'
+        else:
+            url = f'https://www.cftc.gov/files/dea/history/com_fin_xls_{str(y)}.zip'
     elif db == 'api_cftc_disagg_futures':
         if y <= 2015:
             url = 'https://www.cftc.gov/files/dea/history/fut_disagg_xls_hist_2006_2016.zip'
@@ -112,6 +120,7 @@ def SQL(df, db):
 
 
 def main(db, c):
+    qq = ['api_cftc_tff_futures', 'api_cftc_tff_combined']
     gg = ['api_cftc_disagg_futures', 'api_cftc_disagg_combined']
     c.execute(f"SELECT max(date) from {dbname}")
     start = c.fetchone()[0]
@@ -120,7 +129,7 @@ def main(db, c):
     end = datetime.datetime.today()
     print(f'==={db}===')
     for i in trange(start.year, end.year + 1):
-        if db == 'api_cftc_tff_futures_only' and start.year < i <= 2016:
+        if db in qq and start.year < i <= 2016:
             continue
         if db in gg and start.year < i <= 2015:
             continue
@@ -132,8 +141,6 @@ def main(db, c):
         SQL(cit_df, dbname)
         os.remove(zpath)
         os.remove(path)
-        """if db == 'api_cftc_disagg_futures' and i == start.year:
-            os.remove('F_DisAgg16_16.xls')"""
 
 
 if __name__ == '__main__':
@@ -146,11 +153,14 @@ if __name__ == '__main__':
 
     # 建表用
     Creat(conn)
-
+    """
     dbnames = [
-            'cftc_cit_supplement', 'cftc_futures_only',
-            'cftc_tff_futures_only',
-            'api_cftc_disagg_futures', 'api_cftc_disagg_combined'
-        ]
+        'api_cftc_cit_supplement',
+        'api_cftc_futures', 'api_cftc_combined'
+        'api_cftc_tff_futures', 'api_cftc_tff_combined',
+        'api_cftc_disagg_futures', 'api_cftc_disagg_combined'
+    ]
+    """
+    dbnames = ['api_cftc_combined']
     for dbname in dbnames:
         main(dbname, cur)

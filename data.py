@@ -155,7 +155,7 @@ if __name__ == '__main__':
     Creat(conn)
     dbnames = [
         'api_cftc_cit_supplement',
-        'api_cftc_futures', 'api_cftc_combined'
+        'api_cftc_futures', 'api_cftc_combined',
         'api_cftc_tff_futures', 'api_cftc_tff_combined',
         'api_cftc_disagg_futures', 'api_cftc_disagg_combined'
     ]

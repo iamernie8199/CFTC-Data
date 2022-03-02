@@ -13,9 +13,23 @@ This is the scraper for all the data published by CFTC, including:
 ## config
 PostgreSQL DB setting
 
+## config/config.yml
+SQL Server DB setting
+
 ## sql
-the table create command for all the CFTC data
+the table create command for all the CFTC data (PostgreSQL)
+
+## sql_sqlserver
+the table create command for all the CFTC data (SQL Server)
 
 ## data
+(PostgreSQL)
 if the table doesn't exist, this script will create for you
 run the script each Friday after CFTC publishes the reports to update the data
+
+## data_sqlserver
+(SQL Server)
+if the table doesn't exist, this script will create for you
+run the script each Friday after CFTC publishes the reports to update the data
+* Using pytds for performance
+* All datalayer code are located in datalayer_sqlserver.py

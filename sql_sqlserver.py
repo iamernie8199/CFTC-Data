@@ -679,7 +679,7 @@ CREATE TABLE api_cftc_disagg_futures (
     Conc_Net_LE_4_TDR_Short_Other FLOAT NOT NULL,
     Conc_Net_LE_8_TDR_Long_Other FLOAT NOT NULL,
     Conc_Net_LE_8_TDR_Short_Other FLOAT NOT NULL,
-    Contract_Units varchar(100) NOT NULL,
+    Contract_Units varchar(200) NOT NULL,
     CFTC_SubGroup_Code varchar(100) NOT NULL,
     FutOnly_or_Combined varchar(10) NOT NULL,
     PRIMARY KEY (date, Market_and_Exchange_Names, CFTC_Contract_Market_Code));"""
@@ -871,7 +871,7 @@ CREATE TABLE api_cftc_disagg_combined (
     Conc_Net_LE_4_TDR_Short_Other FLOAT NOT NULL,
     Conc_Net_LE_8_TDR_Long_Other FLOAT NOT NULL,
     Conc_Net_LE_8_TDR_Short_Other FLOAT NOT NULL,
-    Contract_Units varchar(100) NOT NULL,
+    Contract_Units varchar(200) NOT NULL,
     CFTC_SubGroup_Code varchar(100) NOT NULL,
     FutOnly_or_Combined varchar(10) NOT NULL,
     PRIMARY KEY (date, Market_and_Exchange_Names, CFTC_Contract_Market_Code));"""

@@ -1,0 +1,16 @@
+dev:
+  pyExec_instance: "10.28.112.93,1433"
+  pyExec_host: "10.28.112.93"
+  pyExec_port: "1433"
+  pyExec_db: "postgres"
+  pyExec_uid: "postgres"
+  pyExec_upwd: "postgres"
+  pyExec_service_port: 8001
+local:
+  pyExec_instance: "10.28.112.93,1433"
+  pyExec_host: "10.28.112.93"
+  pyExec_port: "1433"
+  pyExec_db: "postgres"
+  pyExec_uid: "postgres"
+  pyExec_upwd: "postgres"
+  pyExec_service_port: 8001
